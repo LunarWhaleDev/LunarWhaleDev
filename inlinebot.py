@@ -16,9 +16,14 @@ import logging
 from uuid import uuid4
 import requests
 import json
-from telegram import InlineQueryResultArticle, ParseMode, InputTextMessageContent, Update
+import pickledb
+from telegram import InlineQueryResultArticle, InlineQueryResultPhoto, ParseMode, InputTextMessageContent, Update
 from telegram.ext import Updater, InlineQueryHandler, CommandHandler, CallbackContext
 from telegram.utils.helpers import escape_markdown
+
+db = pickledb.load("bot.db", True)
+if not db.get("tokens"):
+    db.set("tokens", [])
 
 # Enable logging
 logging.basicConfig(
@@ -30,12 +35,71 @@ logger = logging.getLogger(__name__)
 
 # Define a few command handlers. These usually take the two arguments update and
 # context. Error handlers also receive the raised TelegramError object in error.
-def start(update: Update, context: CallbackContext) -> None:
+def startjob(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /start is issued."""
-    update.message.reply_text('Hi!')
+    update.message.reply_text('Starting JobQueue!')
+    context.job_queue.run_repeating(getdb, 60)
+    update.effective_chat.send_message("Job Started!")
+#    print(db.get("tokens"))
 
+def updatedb(update: Update, context: CallbackContext):
+    getdb(context)
+#    print(db.get("tokens"))
+    update.effective_chat.send_message("DB Updated!")
 
-def help_command(update: Update, context: CallbackContext) -> None:
+def getdb(context):
+    print("****starting job****")
+#    api = "https://api.vulcanforged.com/getTokenByDappid/3"
+    api = "http://api.vulcanforged.com/getAllArts"
+    r = requests.get(api)
+    data = json.loads(r.text)
+    list1 = data['data']
+#    api = "https://api.vulcanforged.com/getTokenByDappid/8"
+#    r = requests.get(api)
+#    data = json.loads(r.text)
+#    list2 = data['data']
+#    list1.extend(list2)
+    db.set("tokens", list1)
+#    print(db.get("tokens"))
+
+def nft(update: Update, context: CallbackContext):
+    if not context.args:
+        return
+    id = context.args[0]
+    text = ""
+    count = 0
+    image = "none"
+    tokens = db.get("tokens")
+    if id.isdigit():
+        for a in tokens:
+            count = count + 1
+            if int(id) == a['id']:
+                data = json.loads(a['ipfs_data_json'])
+                for key, value in data.items():
+                    text = f"{text}{key} : {value}\n"
+                image = data['image']
+    else:
+        count1 = 0
+        text1 = ""
+        for a in tokens:
+            count = count + 1
+            data = json.loads(a['ipfs_data_json'])
+            for key, value in data.items():
+                if value == id:
+                    count1 = count1 + 1
+                    if count1 == 1:
+                        image = data['image']
+                        for key, value in data.items():
+                            text1 = f"{text1}{key} : {value}\n"
+                    text = f"{text1}\nEstimated Item Count: {count1}"
+    if text == "":
+        text = "Invalid search\n"
+        update.message.reply_text(f"{text}\nTotal number of VF NFTs: {count}")
+    if image != "none":
+        ipfs = f"https://cloudflare-ipfs.com/ipfs/{image}"
+        context.bot.send_photo(chat_id=update.effective_chat.id, photo=ipfs, caption=f"{text}\nTotal number of VF NFTs: {count}")
+
+def tokens(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /help is issued."""
 #    update.message.reply_text('Help!')
     if not context.args:
@@ -99,32 +163,55 @@ def inlinequery(update: Update, context: CallbackContext) -> None:
     if query == "":
         return
 
+#    success = false
+    ipfs = ""
+    text = ""
+    image = ""
+    if query.isdigit():
+        api = f"http://api.vulcanforged.com/getArtByID/{query}"
+        r = requests.get(api)
+        data = json.loads(r.text)
+        list = data['data']
+        image = list['image']
+        for key, value in list.items():
+            text = f"{text}{key} : {value}\n"
+        ipfs = f"https://cloudflare-ipfs.com/ipfs/{image}"
+        text = f"NFT ID: {query}\n{text}"
+    else:
+        api = "https://api.vulcanforged.com/getTokenByDappid/3"
+        r = requests.get(api)
+        data = json.loads(r.text)
+        list1 = data['data']
+        api = "https://api.vulcanforged.com/getTokenByDappid/8"
+        r = requests.get(api)
+        data = json.loads(r.text)
+        list2 = data['data']
+        list1.extend(list2)
+        count = 0
+        for nft in list1:
+            data = nft['ipfs_data_json']
+            data = json.loads(data)
+            for key, value in data.items():
+                if value == id:
+                    if count == 0:
+                        text = ""
+                        image = data['image']
+                        for key, value in data.items():
+                            text = f"{text}{key} : {value}\n"
+                    count = count + 1
+        ipfs = f"https://cloudflare-ipfs.com/ipfs/{image}"
+        text = f"{text}Estimated count:{count}"
+
     results = [
-        InlineQueryResultArticle(
+        InlineQueryResultPhoto(
             id=str(uuid4()),
-            title="Caps",
-            input_message_content=InputTextMessageContent(query.upper()),
-        ),
-        InlineQueryResultArticle(
-            id=str(uuid4()),
-            title="Bold",
-            input_message_content=InputTextMessageContent(
-                f"*{escape_markdown(query)}*", parse_mode=ParseMode.MARKDOWN
-            ),
-        ),
-        InlineQueryResultArticle(
-            id=str(uuid4()),
-            title="Italic",
-            input_message_content=InputTextMessageContent(
-                f"_{escape_markdown(query)}_", parse_mode=ParseMode.MARKDOWN
-            ),
-        ),
+            title=query,
+            photo_url=ipfs,
+            thumb_url=ipfs,
+            caption=text)
     ]
 
-    if query.isdigit():
-        results = []
     update.inline_query.answer(results)
-
 
 def main() -> None:
     """Run the bot."""
@@ -135,8 +222,9 @@ def main() -> None:
     dispatcher = updater.dispatcher
 
     # on different commands - answer in Telegram
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("help", help_command))
+    dispatcher.add_handler(CommandHandler("startjob", startjob))
+    dispatcher.add_handler(CommandHandler("updatedb", updatedb))
+    dispatcher.add_handler(CommandHandler("nft", nft))
 
     # on non command i.e message - echo the message on Telegram
     dispatcher.add_handler(InlineQueryHandler(inlinequery))
