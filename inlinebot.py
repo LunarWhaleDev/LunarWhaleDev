@@ -40,27 +40,17 @@ def startjob(update: Update, context: CallbackContext) -> None:
     update.message.reply_text('Starting JobQueue!')
     context.job_queue.run_repeating(getdb, 60)
     update.effective_chat.send_message("Job Started!")
-#    print(db.get("tokens"))
 
 def updatedb(update: Update, context: CallbackContext):
     getdb(context)
-#    print(db.get("tokens"))
     update.effective_chat.send_message("DB Updated!")
 
 def getdb(context):
-    print("****starting job****")
-#    api = "https://api.vulcanforged.com/getTokenByDappid/3"
     api = "http://api.vulcanforged.com/getAllArts"
     r = requests.get(api)
     data = json.loads(r.text)
     list1 = data['data']
-#    api = "https://api.vulcanforged.com/getTokenByDappid/8"
-#    r = requests.get(api)
-#    data = json.loads(r.text)
-#    list2 = data['data']
-#    list1.extend(list2)
     db.set("tokens", list1)
-#    print(db.get("tokens"))
 
 def nft(update: Update, context: CallbackContext):
     if not context.args:
@@ -107,7 +97,6 @@ def nft(update: Update, context: CallbackContext):
         except:
             update.message.reply_text(f"{text}\nTotal Number of VF NFTs: {count}")
 
-
 def inlinequery(update: Update, context: CallbackContext) -> None:
     """Handle the inline query."""
     query = update.inline_query.query
@@ -136,11 +125,17 @@ def inlinequery(update: Update, context: CallbackContext) -> None:
             for key, value in data.items():
                 if value == query:
                     count1 = count1 + 1
+                    try:
+                        image = data['image']
+                    except:
+                        image = image
                     if count1 == 1:
                         image = data['image']
                         for key, value in data.items():
                             text1 = f"{text1}{key} : {value}\n"
-                    text = f"{text1}\nEstimated Item Count: {count1}"
+                    text = f"{text1}\nEstimated Item Matches: {count1}"
+    if query == "Soter":
+        image = "QmY6bvjZjPaG4c1SFsQU9V2DoY5WtxywoKA2n91QZZGNdH"
     if text != "":
         text = f"{text}\nTotal number of VF NFTs: {count}"
     if text == "":
@@ -158,7 +153,6 @@ def inlinequery(update: Update, context: CallbackContext) -> None:
                 caption=text,
             ),
         ]
-#if image == "none":
     except:
         results = [
             InlineQueryResultArticle(
