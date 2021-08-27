@@ -87,73 +87,25 @@ def nft(update: Update, context: CallbackContext):
             for key, value in data.items():
                 if value == id:
                     count1 = count1 + 1
-                    if count1 == 1:
+                    try:
                         image = data['image']
+                    except:
+                        image = image
+                    if count1 == 1:
                         for key, value in data.items():
                             text1 = f"{text1}{key} : {value}\n"
                     text = f"{text1}\nEstimated Item Count: {count1}"
+    if id == "Soter":
+        image = "QmY6bvjZjPaG4c1SFsQU9V2DoY5WtxywoKA2n91QZZGNdH"
     if text == "":
         text = "Invalid search\n"
         update.message.reply_text(f"{text}\nTotal number of VF NFTs: {count}")
     if image != "none":
         ipfs = f"https://cloudflare-ipfs.com/ipfs/{image}"
-        context.bot.send_photo(chat_id=update.effective_chat.id, photo=ipfs, caption=f"{text}\nTotal number of VF NFTs: {count}")
-
-def tokens(update: Update, context: CallbackContext) -> None:
-    """Send a message when the command /help is issued."""
-#    update.message.reply_text('Help!')
-    if not context.args:
-        print("no args")
-        return
-
-    id = context.args[0]
-    if id.isdigit():
-        api = f"http://api.vulcanforged.com/getArtByID/{id}"
-        r = requests.get(api)
-        data = json.loads(r.text)
-        list = data['data']
-        text = ""
-        image = list['image']
-        for key, value in list.items():
-            text = f"{text}{key} : {value}\n"
-#        print(key, ' : ', value)
-        update.message.reply_text(text)
-        ipfs = f"https://cloudflare-ipfs.com/ipfs/{image}"
-        context.bot.send_photo(chat_id=update.effective_chat.id, photo=ipfs)
-
-    else:
-        api = "https://api.vulcanforged.com/getTokenByDappid/3"
-        r = requests.get(api)
-        data = json.loads(r.text)
-        list1 = data['data']
-#        print(list1[0])
-#        print(list1[1])
-#        return
-        api = "https://api.vulcanforged.com/getTokenByDappid/8"
-        r = requests.get(api)
-        data = json.loads(r.text)
-        list2 = data['data']
-        list1.extend(list2)
-#        print(list1[0])
-#        print(list1[-1])
-        count = 0
-        for nft in list1:
-            data = nft['ipfs_data_json']
-            data = json.loads(data)
-            for key, value in data.items():
-                if value == id:
-#                    print(key, " : ", value)
-                    if count == 0:
-                        text = ""
-                        image = data['image']
-                        for key, value in data.items():
-                            text = f"{text}{key} : {value}\n"
-#                    print(text)
-                    count = count + 1
-        update.message.reply_text(f"{text}Estimated count:{count}")
-        ipfs = f"https://cloudflare-ipfs.com/ipfs/{image}"
-        context.bot.send_photo(chat_id=update.effective_chat.id, photo=ipfs)
-#                    print(count)
+        try:
+            context.bot.send_photo(chat_id=update.effective_chat.id, photo=ipfs, caption=f"{text}\nTotal number of VF NFTs: {count}")
+        except:
+            update.message.reply_text(f"{text}\nTotal Number of VF NFTs: {count}")
 
 
 def inlinequery(update: Update, context: CallbackContext) -> None:
@@ -163,53 +115,58 @@ def inlinequery(update: Update, context: CallbackContext) -> None:
     if query == "":
         return
 
-#    success = false
-    ipfs = ""
     text = ""
-    image = ""
+    count = 0
+    image = "none"
+    tokens = db.get("tokens")
     if query.isdigit():
-        api = f"http://api.vulcanforged.com/getArtByID/{query}"
-        r = requests.get(api)
-        data = json.loads(r.text)
-        list = data['data']
-        image = list['image']
-        for key, value in list.items():
-            text = f"{text}{key} : {value}\n"
-        ipfs = f"https://cloudflare-ipfs.com/ipfs/{image}"
-        text = f"NFT ID: {query}\n{text}"
+        for a in tokens:
+            count = count + 1
+            if int(query) == a['id']:
+                data = json.loads(a['ipfs_data_json'])
+                for key, value in data.items():
+                    text = f"{text}{key} : {value}\n"
+                image = data['image']
     else:
-        api = "https://api.vulcanforged.com/getTokenByDappid/3"
-        r = requests.get(api)
-        data = json.loads(r.text)
-        list1 = data['data']
-        api = "https://api.vulcanforged.com/getTokenByDappid/8"
-        r = requests.get(api)
-        data = json.loads(r.text)
-        list2 = data['data']
-        list1.extend(list2)
-        count = 0
-        for nft in list1:
-            data = nft['ipfs_data_json']
-            data = json.loads(data)
+        count1 = 0
+        text1 = ""
+        for a in tokens:
+            count = count + 1
+            data = json.loads(a['ipfs_data_json'])
             for key, value in data.items():
-                if value == id:
-                    if count == 0:
-                        text = ""
+                if value == query:
+                    count1 = count1 + 1
+                    if count1 == 1:
                         image = data['image']
                         for key, value in data.items():
-                            text = f"{text}{key} : {value}\n"
-                    count = count + 1
+                            text1 = f"{text1}{key} : {value}\n"
+                    text = f"{text1}\nEstimated Item Count: {count1}"
+    if text != "":
+        text = f"{text}\nTotal number of VF NFTs: {count}"
+    if text == "":
+        text = f"Invalid search\n\nTotal number of VF NFTs: {count}"
+    if image != "none":
         ipfs = f"https://cloudflare-ipfs.com/ipfs/{image}"
-        text = f"{text}Estimated count:{count}"
 
-    results = [
-        InlineQueryResultPhoto(
-            id=str(uuid4()),
-            title=query,
-            photo_url=ipfs,
-            thumb_url=ipfs,
-            caption=text)
-    ]
+    try:
+        results = [
+            InlineQueryResultPhoto(
+                id=str(uuid4()),
+                title=query,
+                photo_url=ipfs,
+                thumb_url=ipfs,
+                caption=text,
+            ),
+        ]
+#if image == "none":
+    except:
+        results = [
+            InlineQueryResultArticle(
+                id=str(uuid4()),
+                title=query,
+                input_message_content=InputTextMessageContent(text),
+            ),
+        ]
 
     update.inline_query.answer(results)
 
