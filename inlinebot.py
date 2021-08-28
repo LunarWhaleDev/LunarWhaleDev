@@ -1,17 +1,6 @@
-0#!/usr/bin/env python
+#!/usr/bin/env python
 # pylint: disable=C0116,W0613
-# This program is dedicated to the public domain under the CC0 license.
 
-"""
-First, a few handler functions are defined. Then, those functions are passed to
-the Dispatcher and registered at their respective places.
-Then, the bot is started and runs until we press Ctrl-C on the command line.
-
-Usage:
-Basic inline bot example. Applies different text transformations.
-Press Ctrl-C on the command line or send a signal to the process to stop the
-bot.
-"""
 import logging
 from uuid import uuid4
 import requests
@@ -22,25 +11,23 @@ from telegram.ext import Updater, InlineQueryHandler, CommandHandler, CallbackCo
 from telegram.utils.helpers import escape_markdown
 from blacklist import get_blacklist
 
-
 db = pickledb.load("bot.db", True)
 if not db.get("tokens"):
     db.set("tokens", [])
 
-# Enable logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
 )
 
 logger = logging.getLogger(__name__)
 
+def start(update, context):
+    update.message.reply_text("This is an inline bot. Use anywhere, in any group. Start your search by entering '@vvnftbot' followed by your search parameter. This bot supports NFT ID numbers as well as metadata text. Please note, the search is case sensitive.\n\n\nTry the following:\n@vvnftbot 15734\n@vvnftbot Asterion\n@vvnftbot Apollo\n@vvnftbot Titan\n@vvnftbot Olympian\n@vvnftbot Boreas\n@vvnftbot Notus\n@vvnftbot Hades\n@vvnftbot Arcadia\n@vvnftbot Berserk Boreas\n@vvnftbot Berserk Notus\n@vvnftbot Berserk Hades\n@vvnftbot Berserk Arcadia\n\nDeveloped by @floydvulcan")
 
-# Define a few command handlers. These usually take the two arguments update and
-# context. Error handlers also receive the raised TelegramError object in error.
 def startjob(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /start is issued."""
     update.message.reply_text('Starting JobQueue!')
-    context.job_queue.run_repeating(getdb, 60)
+    context.job_queue.run_repeating(getdb, 43200)
     update.effective_chat.send_message("Job Started!")
 
 def updatedb(update: Update, context: CallbackContext):
@@ -53,13 +40,10 @@ def getdb(context):
     data = json.loads(r.text)
     list = data['data']
     blacklist = get_blacklist()
-#    print(len(list))
-#    print(len(blacklist))
     for a in blacklist:
         for token in list:
             if a == token['id']:
                 list.remove(token)
-    print(len(list))
     db.set("tokens", list)
 
 def nft(id):
@@ -86,6 +70,8 @@ def nft(id):
             count = count + 1
             data = json.loads(a['ipfs_data_json'])
             for key, value in data.items():
+                if id == 'Hippolytas Bow':
+                    id = 'Hippolyta’s Bow'
                 if (value == id and id != 'Berserk' and id != 'Hermes' and id != 'Trapjaw' and id != 'Zeus' and id != 'Lost Shade' and id != 'Venomtail') or (value == id and id == 'Zeus' and data['dappid'] == 8) or (value == id and id == 'Lost Shade' and data['dappid'] == 3) or (value == 'Venomtail' and id == 'Venomtail Berserk' and data['dappid'] == 11) or (value == id and id == 'Venomtail' and data['dappid'] == 3) or (value == "Trapjaw" and id == "Trapjaw" and data['dappid'] == 3) or (value == 'Trapjaw' and id == 'Trapjaw Berserk' and data['dappid'] == 11) or (value == id and id == 'Hermes' and data['dappid'] == 8):
                     count1 = count1 + 1
                     if count1 == 1:
@@ -113,40 +99,21 @@ def inlinequery(update: Update, context: CallbackContext):
     if query == "":
         return
 
-    text, ipfs = nft(query)
-
-    if text == "none":
-        return
-    else:
-        results = [
-            InlineQueryResultPhoto(
-                id=str(uuid4()),
-                title=query,
-                photo_url=ipfs,
-                thumb_url=ipfs,
-                caption=text,
-            ),
-        ]
-
     list = {'Boreas': ['Tomyios', 'Aelio', 'Thunder', 'Kopis', 'Asterion'],
                 'Arcadia': ['Phearei', 'Alpha', 'Soter', 'Velosina', 'Chiron'],
                 'Notus': ['Venomtail', 'Syna', 'Chthonius', 'Nemean', 'Numatox'],
                 'Hades': ['Wolfshadow', 'Trapjaw', 'Medusa', 'Lost Shade', 'Blubberjaw', 'Charon'],
                 'Olympian': ['Zeus', 'Poseidon', 'Ares', 'Hermes', 'Apollo', 'Aphrodite', 'Hera', 'Demeter'],
                 'Titan': ['Cronus', 'Hyperion', 'Coeus', 'Crius', 'Iapetus', 'Oceanus', 'Rhea', 'Tethys'],
-                'game': ['Sunfire Strike']}
-#                'Bers': ['Sunfire Strike']}
-#, 'Velosina of the Sacred Stables', 'Gift of the Great Green Ones', 'Snares of the Fae', 'Stranglevines', 'Summer Palace', 'Pipes of Pan', 'Centaur Warband', 'Summer Storms', 'Bushwhack Wolf'],
-#                'Berserk Boreas': ['The Fortress of Winds', 'The Breath of Boreas', "Hippolyta’s Bow", 'Panoply of Minos', 'Hilltop Fort of the Amazons', 'Claws of the Harpy', 'Cantankerous Mammoth', 'Sudden Snowdrifts', 'Rip and Rend', 'Cyclops Rock Rain'],
-#                'Berserk Hades': ['Edge of Night', 'Cerberus, Hound of Hades', 'Funeral Barge of Acheron', 'A Storm of Strix', 'The Hymn of Thanatos', 'A Mustering of Souls', 'Sepulchral Armour', 'Javelins of Thanatos', 'Trapjaw Berserk', 'Shade Warrior'],
-#                'Berserk Notus': ['Blood of the Cockatrice', 'Myrmidon Warrior', 'Shield of Achilles', 'The Spear of Achilles', 'Sandstorm', 'Scorpion Stance', 'Venomtail Berserk', 'Desert Winds', 'Storm Surge', 'The Ones Who Drink']}
+                'Berserk Arcadia': ['Sunfire Strike', 'Velosina of the Sacred Stables', 'Gift of the Great Green Ones', 'Snares of the Fae', 'Stranglevines', 'Summer Palace', 'Pipes of Pan', 'Centaur Warband', 'Summer Storms', 'Bushwhack Wolf'],
+                'Berserk Boreas': ['The Fortress of Winds', 'The Breath of Boreas', "Hippolyta's Bow", 'Panoply of Minos', 'Hilltop Fort of the Amazons', 'Claws of the Harpy', 'Cantankerous Mammoth', 'Sudden Snowdrifts', 'Rip and Rend', 'Cyclops Rock Rain'],
+                'Berserk Hades': ['Edge of Night', 'Cerberus, Hound of Hades', 'Funeral Barge of Acheron', 'A Storm of Strix', 'The Hymn of Thanatos', 'A Mustering of Souls', 'Sepurchral Armour', 'Javelins of Thanatos', 'Trapjaw Berserk', 'Shade Warrior'],
+                'Berserk Notus': ['Blood of the Cockatrice', 'Myrmidon Warrior', 'Shield of Achilles', 'The Spear of Achilles', 'Sandstorm', 'Scorpion Stance', 'Venomtail Berserk', 'Desert Winds', 'Storm Surge', 'The Ones Who Drink']}
 
-    print(query)
+    results = []
     for group in list:
         if query == group:
-            results = []
             groupitems = list[group]
-            print(groupitems)
             for token in groupitems:
                 text, ipfs = nft(token)
                 results.append(
@@ -159,32 +126,37 @@ def inlinequery(update: Update, context: CallbackContext):
                     )
                 )
 
-    update.inline_query.answer(results)
+    if results == []:
+        text, ipfs = nft(query)
+        if text == "none":
+            return
+        else:
+            results = [
+                InlineQueryResultPhoto(
+                    id=str(uuid4()),
+                    title=query,
+                    photo_url=ipfs,
+                    thumb_url=ipfs,
+                    caption=text,
+                ),
+            ]
+
+    update.inline_query.answer(results, timeout=3000)
 
 def main() -> None:
-    """Run the bot."""
-    # Create the Updater and pass it your bot's token.
-    updater = Updater("1952808883:AAEYi9gJr_JsxPz4n2bVo4FQfrWyPFVTPoQ")
+    updater = Updater("")
 
-    # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
 
-    # on different commands - answer in Telegram
+    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CommandHandler("help", start))
     dispatcher.add_handler(CommandHandler("startjob", startjob))
     dispatcher.add_handler(CommandHandler("updatedb", updatedb))
-    dispatcher.add_handler(CommandHandler("nft", nft))
 
-    # on non command i.e message - echo the message on Telegram
     dispatcher.add_handler(InlineQueryHandler(inlinequery))
 
-    # Start the Bot
     updater.start_polling()
-
-    # Block until the user presses Ctrl-C or the process receives SIGINT,
-    # SIGTERM or SIGABRT. This should be used most of the time, since
-    # start_polling() is non-blocking and will stop the bot gracefully.
     updater.idle()
-
 
 if __name__ == '__main__':
     main()
