@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+0#!/usr/bin/env python
 # pylint: disable=C0116,W0613
 # This program is dedicated to the public domain under the CC0 license.
 
@@ -20,6 +20,8 @@ import pickledb
 from telegram import InlineQueryResultArticle, InlineQueryResultPhoto, ParseMode, InputTextMessageContent, Update
 from telegram.ext import Updater, InlineQueryHandler, CommandHandler, CallbackContext
 from telegram.utils.helpers import escape_markdown
+from blacklist import get_blacklist
+
 
 db = pickledb.load("bot.db", True)
 if not db.get("tokens"):
@@ -49,13 +51,18 @@ def getdb(context):
     api = "http://api.vulcanforged.com/getAllArts"
     r = requests.get(api)
     data = json.loads(r.text)
-    list1 = data['data']
-    db.set("tokens", list1)
+    list = data['data']
+    blacklist = get_blacklist()
+#    print(len(list))
+#    print(len(blacklist))
+    for a in blacklist:
+        for token in list:
+            if a == token['id']:
+                list.remove(token)
+    print(len(list))
+    db.set("tokens", list)
 
-def nft(update: Update, context: CallbackContext):
-    if not context.args:
-        return
-    id = context.args[0]
+def nft(id):
     text = ""
     count = 0
     image = "none"
@@ -65,9 +72,13 @@ def nft(update: Update, context: CallbackContext):
             count = count + 1
             if int(id) == a['id']:
                 data = json.loads(a['ipfs_data_json'])
+                text = f"NFT {id}\n"
                 for key, value in data.items():
                     text = f"{text}{key} : {value}\n"
-                image = data['image']
+                try:
+                    image = data['image']
+                except:
+                    pass
     else:
         count1 = 0
         text1 = ""
@@ -75,75 +86,38 @@ def nft(update: Update, context: CallbackContext):
             count = count + 1
             data = json.loads(a['ipfs_data_json'])
             for key, value in data.items():
-                if value == id:
+                if (value == id and id != 'Berserk' and id != 'Hermes' and id != 'Trapjaw' and id != 'Zeus' and id != 'Lost Shade' and id != 'Venomtail') or (value == id and id == 'Zeus' and data['dappid'] == 8) or (value == id and id == 'Lost Shade' and data['dappid'] == 3) or (value == 'Venomtail' and id == 'Venomtail Berserk' and data['dappid'] == 11) or (value == id and id == 'Venomtail' and data['dappid'] == 3) or (value == "Trapjaw" and id == "Trapjaw" and data['dappid'] == 3) or (value == 'Trapjaw' and id == 'Trapjaw Berserk' and data['dappid'] == 11) or (value == id and id == 'Hermes' and data['dappid'] == 8):
                     count1 = count1 + 1
-                    try:
-                        image = data['image']
-                    except:
-                        image = image
                     if count1 == 1:
+                        try:
+                            image = data['image']
+                        except:
+                            pass
                         for key, value in data.items():
                             text1 = f"{text1}{key} : {value}\n"
-                    text = f"{text1}\nEstimated Item Count: {count1}"
-    if id == "Soter":
-        image = "QmY6bvjZjPaG4c1SFsQU9V2DoY5WtxywoKA2n91QZZGNdH"
+                    text = f"{text1}\nEstimated NFT Matches: {count1}"
+    if text != "":
+        text = f"{text}\nTotal number of VF NFTs: {count}"
     if text == "":
-        text = "Invalid search\n"
-        update.message.reply_text(f"{text}\nTotal number of VF NFTs: {count}")
+        text = "none"
     if image != "none":
         ipfs = f"https://cloudflare-ipfs.com/ipfs/{image}"
-        try:
-            context.bot.send_photo(chat_id=update.effective_chat.id, photo=ipfs, caption=f"{text}\nTotal number of VF NFTs: {count}")
-        except:
-            update.message.reply_text(f"{text}\nTotal Number of VF NFTs: {count}")
+    if image == "none":
+        ipfs = "https://vulcannfts.com/w/images/c/c8/OG_jimi-x_appreciation.jpg"
 
-def inlinequery(update: Update, context: CallbackContext) -> None:
-    """Handle the inline query."""
+    return text, ipfs
+
+def inlinequery(update: Update, context: CallbackContext):
     query = update.inline_query.query
 
     if query == "":
         return
 
-    text = ""
-    count = 0
-    image = "none"
-    tokens = db.get("tokens")
-    if query.isdigit():
-        for a in tokens:
-            count = count + 1
-            if int(query) == a['id']:
-                data = json.loads(a['ipfs_data_json'])
-                for key, value in data.items():
-                    text = f"{text}{key} : {value}\n"
-                image = data['image']
-    else:
-        count1 = 0
-        text1 = ""
-        for a in tokens:
-            count = count + 1
-            data = json.loads(a['ipfs_data_json'])
-            for key, value in data.items():
-                if value == query:
-                    count1 = count1 + 1
-                    try:
-                        image = data['image']
-                    except:
-                        image = image
-                    if count1 == 1:
-                        image = data['image']
-                        for key, value in data.items():
-                            text1 = f"{text1}{key} : {value}\n"
-                    text = f"{text1}\nEstimated Item Matches: {count1}"
-    if query == "Soter":
-        image = "QmY6bvjZjPaG4c1SFsQU9V2DoY5WtxywoKA2n91QZZGNdH"
-    if text != "":
-        text = f"{text}\nTotal number of VF NFTs: {count}"
-    if text == "":
-        text = f"Invalid search\n\nTotal number of VF NFTs: {count}"
-    if image != "none":
-        ipfs = f"https://cloudflare-ipfs.com/ipfs/{image}"
+    text, ipfs = nft(query)
 
-    try:
+    if text == "none":
+        return
+    else:
         results = [
             InlineQueryResultPhoto(
                 id=str(uuid4()),
@@ -153,14 +127,37 @@ def inlinequery(update: Update, context: CallbackContext) -> None:
                 caption=text,
             ),
         ]
-    except:
-        results = [
-            InlineQueryResultArticle(
-                id=str(uuid4()),
-                title=query,
-                input_message_content=InputTextMessageContent(text),
-            ),
-        ]
+
+    list = {'Boreas': ['Tomyios', 'Aelio', 'Thunder', 'Kopis', 'Asterion'],
+                'Arcadia': ['Phearei', 'Alpha', 'Soter', 'Velosina', 'Chiron'],
+                'Notus': ['Venomtail', 'Syna', 'Chthonius', 'Nemean', 'Numatox'],
+                'Hades': ['Wolfshadow', 'Trapjaw', 'Medusa', 'Lost Shade', 'Blubberjaw', 'Charon'],
+                'Olympian': ['Zeus', 'Poseidon', 'Ares', 'Hermes', 'Apollo', 'Aphrodite', 'Hera', 'Demeter'],
+                'Titan': ['Cronus', 'Hyperion', 'Coeus', 'Crius', 'Iapetus', 'Oceanus', 'Rhea', 'Tethys'],
+                'game': ['Sunfire Strike']}
+#                'Bers': ['Sunfire Strike']}
+#, 'Velosina of the Sacred Stables', 'Gift of the Great Green Ones', 'Snares of the Fae', 'Stranglevines', 'Summer Palace', 'Pipes of Pan', 'Centaur Warband', 'Summer Storms', 'Bushwhack Wolf'],
+#                'Berserk Boreas': ['The Fortress of Winds', 'The Breath of Boreas', "Hippolyta’s Bow", 'Panoply of Minos', 'Hilltop Fort of the Amazons', 'Claws of the Harpy', 'Cantankerous Mammoth', 'Sudden Snowdrifts', 'Rip and Rend', 'Cyclops Rock Rain'],
+#                'Berserk Hades': ['Edge of Night', 'Cerberus, Hound of Hades', 'Funeral Barge of Acheron', 'A Storm of Strix', 'The Hymn of Thanatos', 'A Mustering of Souls', 'Sepulchral Armour', 'Javelins of Thanatos', 'Trapjaw Berserk', 'Shade Warrior'],
+#                'Berserk Notus': ['Blood of the Cockatrice', 'Myrmidon Warrior', 'Shield of Achilles', 'The Spear of Achilles', 'Sandstorm', 'Scorpion Stance', 'Venomtail Berserk', 'Desert Winds', 'Storm Surge', 'The Ones Who Drink']}
+
+    print(query)
+    for group in list:
+        if query == group:
+            results = []
+            groupitems = list[group]
+            print(groupitems)
+            for token in groupitems:
+                text, ipfs = nft(token)
+                results.append(
+                    InlineQueryResultPhoto(
+                        id=str(uuid4()),
+                        title=token,
+                        photo_url=ipfs,
+                        thumb_url=ipfs,
+                        caption=text,
+                    )
+                )
 
     update.inline_query.answer(results)
 
