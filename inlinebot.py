@@ -14,6 +14,7 @@ from blacklist import get_blacklist
 db = pickledb.load("bot.db", True)
 if not db.get("tokens"):
     db.set("tokens", [])
+dblist = db.get("tokens")
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -32,27 +33,54 @@ def startjob(update: Update, context: CallbackContext) -> None:
 
 def updatedb(update: Update, context: CallbackContext):
     getdb(context)
-    update.effective_chat.send_message("DB Updated!")
+    update.message.reply_text("DB Updated!")
 
 def getdb(context):
     api = "http://api.vulcanforged.com/getAllArts"
     r = requests.get(api)
     data = json.loads(r.text)
     list = data['data']
+    print("Tokens: ", len(list))
     blacklist = get_blacklist()
+    print("Blacklist: ", len(blacklist))
     for a in blacklist:
         for token in list:
             if a == token['id']:
                 list.remove(token)
-    db.set("tokens", list)
+    print("Updated Tokens: ", len(list))
+    global dblist
+    dblist = list
+    db.set("tokens", dblist)
+
+def build_default(update, context):
+    list = {'Vulcanites': ['Tomyios', 'Aelio', 'Thunder', 'Kopis', 'Asterion', 'Phearei', 'Alpha', 'Soter', 'Velosina', 'Chiron', 'Venomtail', 'Syna', 'Chthonius', 'Nemean', 'Numatox', 'Wolfshadow', 'Trapjaw', 'Medusa', 'Lost Shade', 'Blubberjaw', 'Charon'],
+            'Boreas': ['Tomyios', 'Aelio', 'Thunder', 'Kopis', 'Asterion'],
+            'Arcadia': ['Phearei', 'Alpha', 'Soter', 'Velosina', 'Chiron'],
+            'Notus': ['Venomtail', 'Syna', 'Chthonius', 'Nemean', 'Numatox'],
+            'Hades': ['Wolfshadow', 'Trapjaw', 'Medusa', 'Lost Shade', 'Blubberjaw', 'Charon'],
+            'Gods': ['Zeus', 'Poseidon', 'Ares', 'Hermes', 'Apollo', 'Aphrodite', 'Hera', 'Demeter', 'Cronus', 'Hyperion', 'Coeus', 'Crius', 'Iapetus', 'Oceanus', 'Rhea', 'Tethys'],
+            'Olympian': ['Zeus', 'Poseidon', 'Ares', 'Hermes', 'Apollo', 'Aphrodite', 'Hera', 'Demeter'],
+            'Titan': ['Cronus', 'Hyperion', 'Coeus', 'Crius', 'Iapetus', 'Oceanus', 'Rhea', 'Tethys'],
+            'Death Dealer': ['The Death Dealer', 'Helm of the Death Dealer', 'Sword of the Death Dealer', 'Shield of the Death Dealer'],
+            'Berserk': ['Sunfire Strike', 'Velosina of the Sacred Stables', 'Gift of the Great Green Ones', 'Snares of the Fae', 'Stranglevines', 'Summer Palace', 'Pipes of Pan', 'Centaur Warband', 'Summer Storms', 'Bushwhack Wolf', 'The Fortress of Winds', 'The Breath of Boreas', "Hippolyta's Bow", 'Panoply of Minos', 'Hilltop Fort of the Amazons', 'Claws of the Harpy', 'Cantankerous Mammoth', 'Sudden Snowdrifts', 'Rip and Rend', 'Cyclops Rock Rain', 'Edge of Night', 'Cerberus, Hound of Hades', 'Funeral Barge of Acheron', 'A Storm of Strix', 'The Hymn of Thanatos', 'A Mustering of Souls', 'Sepurchral Armour', 'Javelins of Thanatos', 'Trapjaw Berserk', 'Shade Warrior', 'Blood of the Cockatrice', 'Myrmidon Warrior', 'Shield of Achilles', 'The Spear of Achilles', 'Sandstorm', 'Scorpion Stance', 'Venomtail Berserk', 'Desert Winds', 'Storm Surge', 'The Ones Who Drink']}
+    for group in list:
+        results = []
+        groupitems = list[group]
+        for token in groupitems:
+            text, ipfs = nft(token)
+            results.append([token, ipfs, text])
+        print(f"{group} items: {len(results)}")
+        list[group] = results
+    for key, value in list.items():
+        print(f"{key}: {len(value)} successfully added.9")
+    db.set("list", list)
 
 def nft(id):
     text = ""
     count = 0
     image = "none"
-    tokens = db.get("tokens")
     if id.isdigit():
-        for a in tokens:
+        for a in dblist:
             count = count + 1
             if int(id) == a['id']:
                 data = json.loads(a['ipfs_data_json'])
@@ -66,15 +94,19 @@ def nft(id):
     else:
         count1 = 0
         text1 = ""
-        for a in tokens:
+        for a in dblist:
             count = count + 1
             data = json.loads(a['ipfs_data_json'])
             for key, value in data.items():
                 if id == 'Hippolytas Bow':
                     id = 'Hippolyta’s Bow'
-                if (value == id and id != 'Berserk' and id != 'Hermes' and id != 'Trapjaw' and id != 'Zeus' and id != 'Lost Shade' and id != 'Venomtail') or (value == id and id == 'Zeus' and data['dappid'] == 8) or (value == id and id == 'Lost Shade' and data['dappid'] == 3) or (value == 'Venomtail' and id == 'Venomtail Berserk' and data['dappid'] == 11) or (value == id and id == 'Venomtail' and data['dappid'] == 3) or (value == "Trapjaw" and id == "Trapjaw" and data['dappid'] == 3) or (value == 'Trapjaw' and id == 'Trapjaw Berserk' and data['dappid'] == 11) or (value == id and id == 'Hermes' and data['dappid'] == 8):
+                id = id.lower()
+                if isinstance(value, str) == True:
+                    value = value.lower()
+                if (value == id and id != 'hermes' and id != 'trapjaw' and id != 'zeus' and id != 'lost shade' and id != 'venomtail') or (value == id and id == 'zeus' and data['dappid'] == 8) or (value == id and id == 'lost shade' and data['dappid'] == 3) or (value == 'venomtail' and id == 'venomtail berserk' and data['dappid'] == 11) or (value == id and id == 'venomtail' and data['dappid'] == 3) or (value == "trapjaw" and id == "trapjaw" and data['dappid'] == 3) or (value == 'trapjaw' and id == 'trapjaw berserk' and data['dappid'] == 11) or (value == id and id == 'hermes' and data['dappid'] == 8):
                     count1 = count1 + 1
-                    if count1 == 1:
+                    if (count1 == 1 and id != 'javelins of thanatos') or (count1 == 4 and id == 'javelins of thanatos'):
+                        print(a['id'])
                         try:
                             image = data['image']
                         except:
@@ -96,33 +128,22 @@ def nft(id):
 def inlinequery(update: Update, context: CallbackContext):
     query = update.inline_query.query
 
-    if query == "":
-        return
-
-    list = {'Boreas': ['Tomyios', 'Aelio', 'Thunder', 'Kopis', 'Asterion'],
-                'Arcadia': ['Phearei', 'Alpha', 'Soter', 'Velosina', 'Chiron'],
-                'Notus': ['Venomtail', 'Syna', 'Chthonius', 'Nemean', 'Numatox'],
-                'Hades': ['Wolfshadow', 'Trapjaw', 'Medusa', 'Lost Shade', 'Blubberjaw', 'Charon'],
-                'Olympian': ['Zeus', 'Poseidon', 'Ares', 'Hermes', 'Apollo', 'Aphrodite', 'Hera', 'Demeter'],
-                'Titan': ['Cronus', 'Hyperion', 'Coeus', 'Crius', 'Iapetus', 'Oceanus', 'Rhea', 'Tethys'],
-                'Berserk Arcadia': ['Sunfire Strike', 'Velosina of the Sacred Stables', 'Gift of the Great Green Ones', 'Snares of the Fae', 'Stranglevines', 'Summer Palace', 'Pipes of Pan', 'Centaur Warband', 'Summer Storms', 'Bushwhack Wolf'],
-                'Berserk Boreas': ['The Fortress of Winds', 'The Breath of Boreas', "Hippolyta's Bow", 'Panoply of Minos', 'Hilltop Fort of the Amazons', 'Claws of the Harpy', 'Cantankerous Mammoth', 'Sudden Snowdrifts', 'Rip and Rend', 'Cyclops Rock Rain'],
-                'Berserk Hades': ['Edge of Night', 'Cerberus, Hound of Hades', 'Funeral Barge of Acheron', 'A Storm of Strix', 'The Hymn of Thanatos', 'A Mustering of Souls', 'Sepurchral Armour', 'Javelins of Thanatos', 'Trapjaw Berserk', 'Shade Warrior'],
-                'Berserk Notus': ['Blood of the Cockatrice', 'Myrmidon Warrior', 'Shield of Achilles', 'The Spear of Achilles', 'Sandstorm', 'Scorpion Stance', 'Venomtail Berserk', 'Desert Winds', 'Storm Surge', 'The Ones Who Drink']}
-
     results = []
+    list = db.get("list")
+    if query == "":
+        query = "Vulcanites"
+
     for group in list:
-        if query == group:
+        if query.lower() == group.lower():
             groupitems = list[group]
             for token in groupitems:
-                text, ipfs = nft(token)
                 results.append(
                     InlineQueryResultPhoto(
                         id=str(uuid4()),
-                        title=token,
-                        photo_url=ipfs,
-                        thumb_url=ipfs,
-                        caption=text,
+                        title=token[0],
+                        photo_url=token[1],
+                        thumb_url=token[1],
+                        caption=token[2],
                     )
                 )
 
@@ -152,7 +173,7 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("help", start))
     dispatcher.add_handler(CommandHandler("startjob", startjob))
     dispatcher.add_handler(CommandHandler("updatedb", updatedb))
-
+    dispatcher.add_handler(CommandHandler("build", build_default))
     dispatcher.add_handler(InlineQueryHandler(inlinequery))
 
     updater.start_polling()
@@ -160,3 +181,4 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
+
