@@ -23,7 +23,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def start(update, context):
-    update.message.reply_text("This is an inline bot. Use anywhere, in any group. Start your search by entering '@vvnftbot' followed by your search parameter. This bot supports NFT ID numbers as well as metadata text. Please note, the search is case sensitive.\n\n\nTry the following:\n@vvnftbot 15734\n@vvnftbot Asterion\n@vvnftbot Apollo\n@vvnftbot Titan\n@vvnftbot Olympian\n@vvnftbot Boreas\n@vvnftbot Notus\n@vvnftbot Hades\n@vvnftbot Arcadia\n@vvnftbot Berserk Boreas\n@vvnftbot Berserk Notus\n@vvnftbot Berserk Hades\n@vvnftbot Berserk Arcadia\n\nDeveloped by @floydvulcan")
+    update.message.reply_text("This is an inline bot. Use anywhere, in any group. Start your search by entering '@vvnftbot' followed by your search parameter. This bot supports NFT ID numbers as well as metadata text. Please note, the search is case sensitive.\n\n\nTry the following:\n@vvnftbot 15734\n@vvnftbot Asterion\n@vvnftbot Gods\n@vvnftbot Apollo\n@vvnftbot Titan\n@vvnftbot Olympian\n@vvnftbot Boreas\n@vvnftbot Notus\n@vvnftbot Hades\n@vvnftbot Arcadia\n@vvnftbot Berserk\n@vvnftbot Coddle Pets\n\nDeveloped by @floydvulcan")
 
 def startjob(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /start is issued."""
@@ -62,7 +62,8 @@ def build_default(update, context):
             'Olympian': ['Zeus', 'Poseidon', 'Ares', 'Hermes', 'Apollo', 'Aphrodite', 'Hera', 'Demeter'],
             'Titan': ['Cronus', 'Hyperion', 'Coeus', 'Crius', 'Iapetus', 'Oceanus', 'Rhea', 'Tethys'],
             'Death Dealer': ['The Death Dealer', 'Helm of the Death Dealer', 'Sword of the Death Dealer', 'Shield of the Death Dealer'],
-            'Berserk': ['Sunfire Strike', 'Velosina of the Sacred Stables', 'Gift of the Great Green Ones', 'Snares of the Fae', 'Stranglevines', 'Summer Palace', 'Pipes of Pan', 'Centaur Warband', 'Summer Storms', 'Bushwhack Wolf', 'The Fortress of Winds', 'The Breath of Boreas', "Hippolyta's Bow", 'Panoply of Minos', 'Hilltop Fort of the Amazons', 'Claws of the Harpy', 'Cantankerous Mammoth', 'Sudden Snowdrifts', 'Rip and Rend', 'Cyclops Rock Rain', 'Edge of Night', 'Cerberus, Hound of Hades', 'Funeral Barge of Acheron', 'A Storm of Strix', 'The Hymn of Thanatos', 'A Mustering of Souls', 'Sepurchral Armour', 'Javelins of Thanatos', 'Trapjaw Berserk', 'Shade Warrior', 'Blood of the Cockatrice', 'Myrmidon Warrior', 'Shield of Achilles', 'The Spear of Achilles', 'Sandstorm', 'Scorpion Stance', 'Venomtail Berserk', 'Desert Winds', 'Storm Surge', 'The Ones Who Drink']}
+            'Berserk': ['Sunfire Strike', 'Velosina of the Sacred Stables', 'Gift of the Great Green Ones', 'Snares of the Fae', 'Stranglevines', 'Summer Palace', 'Pipes of Pan', 'Centaur Warband', 'Summer Storms', 'Bushwhack Wolf', 'The Fortress of Winds', 'The Breath of Boreas', "Hippolyta's Bow", 'Panoply of Minos', 'Hilltop Fort of the Amazons', 'Claws of the Harpy', 'Cantankerous Mammoth', 'Sudden Snowdrifts', 'Rip and Rend', 'Cyclops Rock Rain', 'Edge of Night', 'Cerberus, Hound of Hades', 'Funeral Barge of Acheron', 'A Storm of Strix', 'The Hymn of Thanatos', 'A Mustering of Souls', 'Sepurchral Armour', 'Javelins of Thanatos', 'Trapjaw Berserk', 'Shade Warrior', 'Blood of the Cockatrice', 'Myrmidon Warrior', 'Shield of Achilles', 'The Spear of Achilles', 'Sandstorm', 'Scorpion Stance', 'Venomtail Berserk', 'Desert Winds', 'Storm Surge', 'The Ones Who Drink'],
+            'Coddlepets': ['Oversizedhat', 'Kaida', 'Iseran', 'Wyvernie', 'Mergess', 'Lavender', 'Spudfire', 'Skandy', 'Bleu', 'Khione', 'Zeekeez', 'Ash', 'Jade', 'Aquadra', 'Ember', 'Comet', 'Eira', 'Podgy', 'Lotus', 'Chase', 'Farasha', 'Aye-aye', 'Salana', 'Fleta', 'Yukio', 'Augino OG', 'Pink Juni Leaf', 'Blue Juni Leaf']}
     for group in list:
         results = []
         groupitems = list[group]
@@ -72,7 +73,7 @@ def build_default(update, context):
         print(f"{group} items: {len(results)}")
         list[group] = results
     for key, value in list.items():
-        print(f"{key}: {len(value)} successfully added.9")
+        print(f"{key}: {len(value)} successfully added.")
     db.set("list", list)
 
 def nft(id):
@@ -103,10 +104,10 @@ def nft(id):
                 id = id.lower()
                 if isinstance(value, str) == True:
                     value = value.lower()
-                if (value == id and id != 'hermes' and id != 'trapjaw' and id != 'zeus' and id != 'lost shade' and id != 'venomtail') or (value == id and id == 'zeus' and data['dappid'] == 8) or (value == id and id == 'lost shade' and data['dappid'] == 3) or (value == 'venomtail' and id == 'venomtail berserk' and data['dappid'] == 11) or (value == id and id == 'venomtail' and data['dappid'] == 3) or (value == "trapjaw" and id == "trapjaw" and data['dappid'] == 3) or (value == 'trapjaw' and id == 'trapjaw berserk' and data['dappid'] == 11) or (value == id and id == 'hermes' and data['dappid'] == 8):
+                if (value == id and id != 'hermes' and id != 'trapjaw' and id != 'lost shade' and id != 'venomtail' and id != 'zeus') or (value == id and id == 'lost shade' and data['dappid'] == 3) or (value == 'venomtail' and id == 'venomtail berserk' and data['dappid'] == 11) or (value == id and id == 'venomtail' and data['dappid'] == 3) or (value == id and id == "trapjaw" and data['dappid'] == 3) or (value == 'trapjaw' and id == 'trapjaw berserk' and data['dappid'] == 11) or (value == id and id == 'hermes' and data['dappid'] == 8) or (value == id and id == 'zeus' and data['dappid'] != 0):
                     count1 = count1 + 1
-                    if (count1 == 1 and id != 'javelins of thanatos') or (count1 == 4 and id == 'javelins of thanatos'):
-                        print(a['id'])
+                    if (count1 == 1 and id != 'fleta' and id != 'eira' and id != 'javelins of thanatos') or (count1 == 4 and id == 'javelins of thanatos') or (count1 == 4 and id == 'eira') or (count1 == 5 and id == 'fleta'):
+#                        print(a['id'])
                         try:
                             image = data['image']
                         except:
@@ -132,7 +133,8 @@ def inlinequery(update: Update, context: CallbackContext):
     list = db.get("list")
     if query == "":
         query = "Vulcanites"
-
+    if query.lower == "coddle pets":
+        query = "coddlepets"
     for group in list:
         if query.lower() == group.lower():
             groupitems = list[group]
@@ -174,6 +176,7 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("startjob", startjob))
     dispatcher.add_handler(CommandHandler("updatedb", updatedb))
     dispatcher.add_handler(CommandHandler("build", build_default))
+    dispatcher.add_handler(CommandHandler("test", test))
     dispatcher.add_handler(InlineQueryHandler(inlinequery))
 
     updater.start_polling()
