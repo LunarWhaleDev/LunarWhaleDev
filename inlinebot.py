@@ -6,7 +6,7 @@ from uuid import uuid4
 import requests
 import json
 import pickledb
-from telegram import InlineQueryResultArticle, InlineQueryResultPhoto, ParseMode, InputTextMessageContent, Update
+from telegram import InlineQueryResultArticle, InlineQueryResultGif, InlineQueryResultPhoto, ParseMode, InputTextMessageContent, Update
 from telegram.ext import Updater, InlineQueryHandler, CommandHandler, CallbackContext
 from telegram.utils.helpers import escape_markdown
 from blacklist import get_blacklist
@@ -63,7 +63,8 @@ def build_default(update, context):
             'Titan': ['Cronus', 'Hyperion', 'Coeus', 'Crius', 'Iapetus', 'Oceanus', 'Rhea', 'Tethys'],
             'Death Dealer': ['The Death Dealer', 'Helm of the Death Dealer', 'Sword of the Death Dealer', 'Shield of the Death Dealer'],
             'Berserk': ['Sunfire Strike', 'Velosina of the Sacred Stables', 'Gift of the Great Green Ones', 'Snares of the Fae', 'Stranglevines', 'Summer Palace', 'Pipes of Pan', 'Centaur Warband', 'Summer Storms', 'Bushwhack Wolf', 'The Fortress of Winds', 'The Breath of Boreas', "Hippolyta's Bow", 'Panoply of Minos', 'Hilltop Fort of the Amazons', 'Claws of the Harpy', 'Cantankerous Mammoth', 'Sudden Snowdrifts', 'Rip and Rend', 'Cyclops Rock Rain', 'Edge of Night', 'Cerberus, Hound of Hades', 'Funeral Barge of Acheron', 'A Storm of Strix', 'The Hymn of Thanatos', 'A Mustering of Souls', 'Sepurchral Armour', 'Javelins of Thanatos', 'Trapjaw Berserk', 'Shade Warrior', 'Blood of the Cockatrice', 'Myrmidon Warrior', 'Shield of Achilles', 'The Spear of Achilles', 'Sandstorm', 'Scorpion Stance', 'Venomtail Berserk', 'Desert Winds', 'Storm Surge', 'The Ones Who Drink'],
-            'Coddlepets': ['Oversizedhat', 'Kaida', 'Iseran', 'Wyvernie', 'Mergess', 'Lavender', 'Spudfire', 'Skandy', 'Bleu', 'Khione', 'Zeekeez', 'Ash', 'Jade', 'Aquadra', 'Ember', 'Comet', 'Eira', 'Podgy', 'Lotus', 'Chase', 'Farasha', 'Aye-aye', 'Salana', 'Fleta', 'Yukio', 'Augino OG', 'Pink Juni Leaf', 'Blue Juni Leaf']}
+            'Coddlepets': ['Oversizedhat', 'Kaida', 'Iseran', 'Wyvernie', 'Mergess', 'Lavender', 'Spudfire', 'Skandy', 'Bleu', 'Khione', 'Zeekeez', 'Ash', 'Jade', 'Aquadra', 'Ember', 'Comet', 'Eira', 'Podgy', 'Lotus', 'Chase', 'Farasha', 'Aye-aye', 'Salana', 'Fleta', 'Yukio', 'Augino OG', 'Pink Juni Leaf', 'Blue Juni Leaf'],
+            'GeoCats': ['Machine Cat', '0xoplasma Felidae', 'NONACO, 2020 Long-Cat', 'King Lasagne', 'Maneki Model #9', 'NONACO Fancy Edition', 'Ta Miu, Crown Prince Thutmose', 'GeoKitten', 'Viking GeoCat', 'Catstronaut', 'Shinobi', 'NeoCat', 'Hypercat', 'Ancient Sphinx', 'AvoCato', 'Solar Cat', 'Lunar Cat', 'Cowboy Cat', 'Mushroom Cat', 'Yule Cat - 2020 ', 'Yule Cat - 2020 Luxury Edition', 'GeoKey', 'OG Catnip', 'Chimera', "Felidsalia Felidsalis, the Cat O' War", 'Garbatage', 'AffoGato']}
     for group in list:
         results = []
         groupitems = list[group]
@@ -148,6 +149,20 @@ def inlinequery(update: Update, context: CallbackContext):
                         caption=token[2],
                     )
                 )
+        if query.lower() == "geocats":
+            results = []
+            groupitems = list['GeoCats']
+            for token in groupitems:
+                results.append(
+                    InlineQueryResultGif(
+                        id=str(uuid4()),
+                        title=token[0],
+                        gif_url=token[1],
+                        thumb_url=token[1],
+                        caption=token[2],
+                        thumb_mime_type='image/gif',
+                    )
+                )
 
     if results == []:
         text, ipfs = nft(query)
@@ -176,7 +191,7 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("startjob", startjob))
     dispatcher.add_handler(CommandHandler("updatedb", updatedb))
     dispatcher.add_handler(CommandHandler("build", build_default))
-    dispatcher.add_handler(CommandHandler("test", test))
+#    dispatcher.add_handler(CommandHandler("test", test))
     dispatcher.add_handler(InlineQueryHandler(inlinequery))
 
     updater.start_polling()
