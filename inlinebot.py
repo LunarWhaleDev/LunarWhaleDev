@@ -182,7 +182,7 @@ def inlinequery(update: Update, context: CallbackContext):
     update.inline_query.answer(results, timeout=3000)
 
 def main() -> None:
-    updater = Updater("")
+    updater = Updater("1950992969:AAHcWUVzhYuB8EsOZvHczihkgFUNm3yzDds")
 
     dispatcher = updater.dispatcher
 
