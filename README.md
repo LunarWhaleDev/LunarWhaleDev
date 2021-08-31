@@ -1,8 +1,10 @@
-- 👋 Hi, I’m Floyd, @LunarWhaleDev
-- 👀 I've been involved in projects like Vexchange, VulcanVerse, and VulcanDex as moderator/team member.
-- 🌱 I’m currently learning Python, Defi, and Blender.
-- 👨‍💻 I'm currently the maintainer of vulcannfts.com, and the LunarWhale LTO node on the LTO network.
-- 📫 How to reach me, https://t.me/floydvulcan
+## 👋 Hi, I’m Floyd, @LunarWhaleDev
+
+#### 👀 **LunarWhale Projects:**
+- [**LunarWhale LTO Node** API](server.lunarwhale.co.th)
+- [**LunarWhale LTO Node** Telegram Group](https://t.me/LunarWhale_LTO_Node)
+- [Vulcan Forged NFT Wiki](https://vulcannfts.com/wiki/Main_Page)
+- Python script [**'Advanced Welcome Bot'**](https://github.com/LunarWhaleDev/advanced_welcome_bot) for telegram groups.
 
 <!---
 LunarWhaleDev/LunarWhaleDev is a ✨ special ✨ repository because its `README.md` (this file) appears on your GitHub profile.
