@@ -5,6 +5,7 @@
 - [**LunarWhale LTO Node** Telegram Group](http://tg.lunarwhale.co.th)
 - [Vulcan Forged NFT Wiki](https://vulcannfts.com/wiki/Main_Page)
 - Python script [**'Advanced Welcome Bot'**](https://github.com/LunarWhaleDev/advanced_welcome_bot) for telegram groups.
+- [@vvnftbot](https://github.com/LunarWhaleDev/vvnftbot), a telegram inline bot to search VulcanVerse NFTs.
 
 📨Contact me at *floyd@lunarwhale.co.th*
 
