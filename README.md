@@ -2,7 +2,7 @@
 
 #### 👀 **LunarWhale Projects:**
 - [**LunarWhale LTO Node** API](server.lunarwhale.co.th)
-- [**LunarWhale LTO Node** Telegram Group](tg.lunarwhale.co.th)
+- [**LunarWhale LTO Node** Telegram Group](https://tg.lunarwhale.co.th)
 - [Vulcan Forged NFT Wiki](https://vulcannfts.com/wiki/Main_Page)
 - Python script [**'Advanced Welcome Bot'**](https://github.com/LunarWhaleDev/advanced_welcome_bot) for telegram groups.
 
