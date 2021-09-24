@@ -1,7 +1,7 @@
 ## 👋 Hi, I’m Floyd, @LunarWhaleDev
 
 #### 👀 **LunarWhale Projects:**
-- [**LunarWhale LTO Node** API](http://server.lunarwhale.co.th)
+- [**LunarWhale LTO Node** API](http://ltonode.lunarwhale.co.th)
 - [**LunarWhale LTO Node** Telegram Group](http://tg.lunarwhale.co.th)
 - [Forge Explore!](https://forgeexplore.com)
 - Python script [**'Advanced Welcome Bot'**](https://github.com/LunarWhaleDev/advanced_welcome_bot) for telegram groups.
