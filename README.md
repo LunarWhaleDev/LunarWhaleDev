@@ -1,12 +1,10 @@
-## 👋 Hi, I’m Floyd, @LunarWhaleDev
-
 #### 👀 **LunarWhale Projects:**
 - [**VulcanDex**!!!](https://vulcandex.vulcanforged.com)
+- [**VulcanDexStats**](https://vulcandexstats.vulcanforged.com)
 - [**Forge Explore**!](https://forgeexplore.com)
 - [**LunarWhale LTO Node** API](http://ltonode.lunarwhale.co.th)
 - [**LunarWhale LTO Node** Telegram Group](http://tg.lunarwhale.co.th)
 - Python script ['Advanced Welcome Bot'](https://github.com/LunarWhaleDev/advanced_welcome_bot) for telegram groups.
-- [vvnftbot](https://github.com/LunarWhaleDev/vvnftbot), a telegram inline bot to search VulcanVerse NFTs.
 
 📨Contact me at *floyd@lunarwhale.co.th*
 
